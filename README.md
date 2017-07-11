@@ -13,6 +13,7 @@ Otto has:
 - LED matrix for mouths
 - internal voltage measurment
 
-v2 sketch is for version vith 2 buttons for mode change (first button dance, second button walk+awoid + together = react to noise)
+v2 sketch is for version with 2 buttons for mode change (first button dance, second button walk+avoid, both together = react to noise)
 v3 sketch has only 1 button or touch sensor and changes modes on touch (dance -> walk -> react to noise -> standby -> dance....)
 Everything else is the same.
+
