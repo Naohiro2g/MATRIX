@@ -22,8 +22,8 @@
 //Removed RGB LED from main code and synced it with mouth animations
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Modified voltage reading to use internal voltage reading - works only if not using step up converter.        //
-//If using step up you have to connect additional + from battery to A7 pin and uncomment #include <BatReader.h>//
-//and change reading in requestBattery(); and OttoLowBatteryAlarm();                                           //
+//If using step up you have to connect additional + from battery to A7 pin, set correct voltages for lipo in   //
+//Global Variables part, and change reading in requestBattery(); and OttoLowBatteryAlarm();                    //
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // - by Davor Levstek
@@ -33,7 +33,6 @@
 #include <Servo.h>
 #include <Oscillator.h>
 #include <EEPROM.h>
-//#include <BatReader.h> //uncomment this if you're using step up converter
 #include <US.h>
 #include <EnableInterrupt.h>
 #include <OttoSerialCommand.h>
@@ -67,13 +66,19 @@ MaxMatrix ledmatrix = MaxMatrix(10, 11, 12, 1); // DIN=10 CS=11 CLK=12
 
 //---Otto Buttons
 #define PIN_SecondButton 6
-//#define PIN_ThirdButton 7 //not using this one for touch sensor
+#define PIN_ThirdButton 7 
 
 ///////////////////////////////////////////////////////////////////
 //-- Global Variables -------------------------------------------//
 ///////////////////////////////////////////////////////////////////
-#define BAT_MAX  4.2
-#define BAT_MIN 3.2
+#define BAT_MAX  4.8 //use this
+#define BAT_MIN 3.6  //and this for NiMh battery
+
+//#define BAT_MAX  4.2 //this
+//#define BAT_MIN 3.2  //is
+//#define BAT_PIN A7   //for 
+//#define ANA_REF 5    //lipo battery
+
 #define SLOPE 100/(BAT_MAX - BAT_MIN)
 #define OFFSET  (100*BAT_MIN)/(BAT_MAX - BAT_MIN)
 
@@ -110,6 +115,16 @@ int randomSteps = 0;
 
 bool obstacleDetected = false;
 
+bool alarmActivated = false;
+bool alarmActive = false;
+int initDistance = 999;
+unsigned long int arming_symbol =   0b00111111100001100001100001111111;
+unsigned long int alarm_symbol =    0b00111111111111111111111111111111;
+
+int angryPos2[4] =    {90, 90, 70, 110};
+int headLeft2[4] =    {110, 110, 90, 90};
+int headRight2[4] =   {70, 70, 90, 90};
+
 //Function that reads internal voltage of Arduino
 long readVcc() {
   // Read 1.1V reference against AVcc
@@ -138,7 +153,7 @@ void setup() {
   //Serial communication initialization
   Serial.begin(57600);
   pinMode(PIN_SecondButton, INPUT);
-  //  pinMode(PIN_ThirdButton, INPUT); //not using for touch sensor
+  pinMode(PIN_ThirdButton, INPUT); //not using for touch sensor
 
   //Set the servo pins
   Otto.init(PIN_YL, PIN_YR, PIN_RL, PIN_RR, true);
@@ -156,7 +171,7 @@ void setup() {
 
   //Interrumptions
   enableInterrupt(PIN_SecondButton, secondButtonPushed, RISING);
-  //  enableInterrupt(PIN_ThirdButton, thirdButtonPushed, RISING);
+  enableInterrupt(PIN_ThirdButton, thirdButtonPushed, RISING);
 
   //Setup callbacks for SerialCommand commands
   SCmd.addCommand("S", receiveStop);      //  sendAck & sendFinalAck
@@ -262,9 +277,9 @@ void setup() {
 ///////////////////////////////////////////////////////////////////
 void loop() {
 
-  if (Serial.available() > 0 && MODE != 4) {
+  if (Serial.available() > 0 && MODE != 6) {
 
-    MODE = 4;
+    MODE = 6;
     Otto.putMouth(happyOpen);
     /*
          //Disable Pin Interruptions
@@ -311,6 +326,12 @@ void loop() {
       Otto.sing(S_mode3);
     }
 
+    else if (MODE == 4) {
+      Otto.sing(S_mode1);
+    }
+    else if (MODE == 5) {
+      Otto.sing(S_mode1);
+    }
     int showTime = 1500;
     while ((showTime > 0)) { //Wait to show the MODE number
 
@@ -448,7 +469,7 @@ void loop() {
       //---------------------------------------------------------
       case 3:
 
-        if (Otto.getNoise() >= 600) { //740
+        if (Otto.getNoise() >= 725) { //740
           delay(50);  //Wait for the possible 'lag' of the button interruptions.
           //Sometimes, the noise sensor detect the button before the interruption takes efect
 
@@ -475,10 +496,106 @@ void loop() {
         }
         break;
 
-
-      //-- MODE 4 - OttoPAD or any Teleoperation mode (listening SerialPort)
+      //-- MODE 4 - Otto Arming alarm system
       //---------------------------------------------------------
       case 4:
+
+
+        //Arming alarm system
+        if (alarmActivated == false) {
+
+          OttoArmingAlarmSystem();
+
+        } else {
+
+          delay(100);
+          int obstacleDistance = Otto.getDistance();
+          int noise = Otto.getNoise();
+          delay(100);
+
+          //ALARM!!!!
+          if ((noise >= 725) || (obstacleDistance < initDistance)) {
+            alarmActive = true;
+            delay(50);
+            while (!buttonPushed) {
+              digitalWrite(ledR, LOW);
+              digitalWrite(ledG, LOW);
+              digitalWrite(ledB, LOW);
+              Otto.putMouth(alarm_symbol, 0);
+              Otto.bendTones (note_A5, note_A7, 1.04, 5, 2);  //A5 = 880 , A7 = 3520
+
+              delay(40);
+              digitalWrite(ledR, HIGH );
+              digitalWrite(ledG, LOW);
+              digitalWrite(ledB, LOW);
+              Otto.bendTones (note_A7, note_A5, 1.02, 5, 2);  //A5 = 880 , A7 = 3520
+              Otto.clearMouth();
+              delay(100);
+            }
+          }
+
+        }
+
+
+
+
+        break;
+
+      //-- MODE 5 - Otto Guardian
+      //---------------------------------------------------------
+      case 5:
+
+        //Arming alarm system
+        if (alarmActivated == false) {
+
+          OttoArmingAlarmSystem();
+
+        } else {
+
+          delay(100);
+          int obstacleDistance = Otto.getDistance();
+          int noise = Otto.getNoise();
+          delay(100);
+
+          //ALARM!!!!
+          if ((noise >= 725) || (obstacleDistance < initDistance)) {
+            alarmActive = true;
+            delay(50);
+            while (!buttonPushed) {
+
+              Otto.putMouth(alarm_symbol, 0);
+              Otto.bendTones (note_A5, note_A7, 1.04, 5, 2);  //A5 = 880 , A7 = 3520
+              delay(20);
+
+              Otto.bendTones (note_A7, note_A5, 1.02, 5, 2);  //A5 = 880 , A7 = 3520
+              Otto.clearMouth();
+              delay(100);
+            }
+          }
+
+          if (millis() - previousMillis >= 8000) { //8sec
+
+            OttoGuardian();
+
+            if (!buttonPushed) {
+
+              delay(100);
+              initDistance = Otto.getDistance();
+              delay(100);
+              initDistance -= 10;
+            }
+
+            previousMillis = millis();
+
+          }
+
+        }
+
+        break;
+
+      //-- MODE 6 - OttoPAD or any Teleoperation mode (listening SerialPort)
+      //---------------------------------------------------------
+      case 6:
 
         SCmd.readSerial();
 
@@ -491,7 +608,7 @@ void loop() {
 
 
       default:
-        MODE = 4;
+        MODE = 6;
         break;
     }
 
@@ -514,15 +631,25 @@ void secondButtonPushed() {
     buttonPushed = true;
     Otto.putMouth(smallSurprise);
   }
-  currentMode = MODE + 1;
-  if (currentMode > 3) {
-    currentMode = 0;
+
+  if (alarmActive == true) {
+    currentMode = MODE;
+    alarmActive = false;
+    alarmActivated = false;
+  }
+  else {
+    currentMode = MODE + 1;
+    alarmActivated = false;
+    if (currentMode > 5) {
+      previousMillis = millis();
+      currentMode = 0;
+    }
   }
 }
-/*
-   // don't need this for touch sensor
-  //-- Function executed when third button is pushed
-  void thirdButtonPushed() {
+
+// don't need this for touch sensor
+//-- Function executed when third button is pushed
+void thirdButtonPushed() {
 
   buttonBPushed = true;
 
@@ -530,7 +657,21 @@ void secondButtonPushed() {
     buttonPushed = true;
     Otto.putMouth(smallSurprise);
   }
-  }*/
+
+  if (alarmActive == true) {
+    currentMode = MODE;
+    alarmActive = false;
+    alarmActivated = false;
+  }
+  else {
+    currentMode = MODE - 1;
+    alarmActivated = false;
+    if (currentMode < 0) {
+      previousMillis = millis();
+      currentMode = 5;
+    }
+  }
+}
 
 
 //-- Function to read distance sensor & to actualize obstacleDetected variable
@@ -1115,9 +1256,17 @@ void requestBattery() {
 
   Otto.home();  //stop if necessary
 
-  int batteryLevel = ((readVcc() / 1000.00) * SLOPE) - OFFSET;
+  int batteryLevel = ((readVcc() / 1000.00) * SLOPE) - OFFSET; //use this fof Nimh
 
-  //double batteryLevel = Otto.getBatteryLevel(); //uncomment this one and comment out above one when using step up converter
+  /*
+    //use this for lipo
+    double readed = (double)(analogRead(BAT_PIN)*ANA_REF)/1024;
+    if(readed > BAT_MAX) return BAT_MAX;
+    else return readed;
+    double batteryLevel = (SLOPE*readed) - OFFSET;
+    if(batteryLevel < 0) return 0;
+    else return batteryLevel;
+  */
 
   if (batteryLevel > 100) {
     batteryLevel = 100;
@@ -1175,9 +1324,17 @@ void sendFinalAck() {
 
 void OttoLowBatteryAlarm() {
 
-  int batteryLevel = ((readVcc() / 1000.00) * SLOPE) - OFFSET;
+  int batteryLevel = ((readVcc() / 1000.00) * SLOPE) - OFFSET; //use this fof Nimh
 
-  //double batteryLevel = Otto.getBatteryLevel(); //uncomment this one and comment out above one when using step up converter
+  /*
+    //use this for lipo
+    double readed = (double)(analogRead(BAT_PIN)*ANA_REF)/1024;
+    if(readed > BAT_MAX) return BAT_MAX;
+    else return readed;
+    double batteryLevel = (SLOPE*readed) - OFFSET;
+    if(batteryLevel < 0) return 0;
+    else return batteryLevel;
+  */
 
   if (batteryLevel < 30) {
     while (!buttonPushed) {
@@ -1253,4 +1410,101 @@ void OttoSleeping_withInterrupts() {
   if (!buttonPushed) {
     Otto.putMouth(happyOpen);
   }
+}
+
+void OttoArmingAlarmSystem() {
+
+  int countDown = 10000; //10 sec
+  while ((countDown > 0) && (!buttonPushed)) {
+    digitalWrite(ledR, LOW);
+    digitalWrite(ledG, HIGH);
+    digitalWrite(ledB, LOW);
+    countDown -= 1000;
+    Otto.putMouth(arming_symbol, 0);
+    Otto._tone(note_A7, 50, 0); //bip'
+    Otto.clearMouth();
+    delay(300);
+    digitalWrite(ledR, LOW);
+    digitalWrite(ledG, LOW);
+    digitalWrite(ledB, LOW);
+    previousMillis = millis();
+    delay(650);
+    if (buttonPushed) {
+      break;
+    }
+
+  }
+
+  if (!buttonPushed) {
+    alarmActivated = true;
+    delay(100);
+    initDistance = Otto.getDistance();
+    delay(100);
+    initDistance -= 10;
+    previousMillis = millis();
+  }
+}
+
+void OttoGuardian() {
+
+  int fretfulPos[4] =  {90, 90, 90, 110};
+
+  if (!buttonPushed) {
+    Otto.putMouth(smallSurprise);
+    delay(100);
+    Otto.sing(S_cuddly);
+    delay(500);
+  }
+
+  if (!buttonPushed) {
+    Otto.putMouth(angry);
+    Otto.bendTones(note_A5, note_D6, 1.02, 20, 4);
+    Otto.bendTones(note_A5, note_E5, 1.02, 20, 4);
+    delay(300);
+    Otto.putMouth(lineMouth);
+  }
+
+
+  for (int i = 0; i < 4; i++) {
+    if (buttonPushed) {
+      break;
+    }
+    Otto._moveServos(100, fretfulPos);
+    Otto.home();
+  }
+
+  if (!buttonPushed) {
+    Otto.putMouth(angry);
+    delay(500);
+  }
+
+
+  if (!buttonPushed) {
+    Otto._moveServos(1000, headLeft2);
+    delay(400);
+  }
+
+  if (!buttonPushed) {
+    Otto.home();
+    delay(400);
+  }
+
+  if (!buttonPushed) {
+    Otto._moveServos(1000, headRight2);
+    delay(400);
+  }
+
+  if (!buttonPushed) {
+    delay(300);
+    Otto.home();
+    Otto.putMouth(smile);
+    delay(100);
+  }
+
+  if (!buttonPushed) {
+    Otto.sing(S_happy_short);
+    delay(800);
+    Otto.clearMouth();
+  }
+
 }
