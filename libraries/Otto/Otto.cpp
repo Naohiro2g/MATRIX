@@ -11,6 +11,8 @@
 #include <Oscillator.h>
 #include <US.h>
 
+
+
 void Otto::init(int YL, int YR, int RL, int RR, bool load_calibration, int NoiseSensor, int Buzzer, int USTrigger, int USEcho) {
   
   servo_pins[0] = YL;
@@ -40,9 +42,6 @@ void Otto::init(int YL, int YR, int RL, int RR, bool load_calibration, int Noise
 
   pinMode(Buzzer,OUTPUT);
   pinMode(NoiseSensor,INPUT);
-  pinMode(ledR,OUTPUT);
-  pinMode(ledG,OUTPUT);
-  pinMode(ledB,OUTPUT);
 }
 
 ///////////////////////////////////////////////////////////////////
@@ -545,7 +544,7 @@ int Otto::getNoise(){
 
   int noiseLevel = 0;
   int noiseReadings = 0;
-  int numReadings = 10;  
+  int numReadings = 2;  
 
     noiseLevel = analogRead(pinNoiseSensor);
 
@@ -558,7 +557,6 @@ int Otto::getNoise(){
 
     return noiseLevel;
 }
-
 
 
 //---------------------------------------------------------
@@ -656,6 +654,19 @@ unsigned long int Otto::getAnimShape(int anim, int index){
      0b00011000100100000010000001000000    
   };
 
+
+  unsigned long int otto_code[]={
+     0b00001100010010010010010010001100,
+     0b00000000000000000000000000000000,
+     0b00011100001000001000001000001000,
+     0b00000000000000000000000000000000,
+     0b00011100001000001000001000001000,
+     0b00000000000000000000000000000000,
+     0b00001100010010010010010010001100,
+     0b00000000000000000000000000000000  
+  };
+
+
   switch  (anim){
 
     case littleUuh:
@@ -669,7 +680,10 @@ unsigned long int Otto::getAnimShape(int anim, int index){
         break;
     case wave:
         return wave_code[index];
-        break;    
+        break;
+    case otto:
+        return otto_code[index];
+        break;        
   }   
 }
 
@@ -688,106 +702,12 @@ void Otto::putMouth(unsigned long int mouth, bool predefined){
   else{
     ledmatrix.writeFull(mouth);
   }
-  if (mouth >= 0 && mouth < 10){
-	digitalWrite(ledR, HIGH);
-    digitalWrite(ledG, HIGH);
- 	digitalWrite(ledB, HIGH);
-  }
-   else if (mouth==10){
-	digitalWrite(ledR, HIGH);
-	digitalWrite(ledG, HIGH);
-	digitalWrite(ledB, HIGH);
-  }	
-    else if (mouth==11){
-	digitalWrite(ledR, LOW);
-	digitalWrite(ledG, HIGH);
-	digitalWrite(ledB, LOW);
-  }	  else if (mouth==12){
-	digitalWrite(ledR, HIGH);
-	digitalWrite(ledG, HIGH);
-	digitalWrite(ledB, LOW);
-  }	  else if (mouth==13){
-	digitalWrite(ledR, HIGH);
-	digitalWrite(ledG, LOW);
-	digitalWrite(ledB, HIGH);
-  }	  else if (mouth==14){
-	digitalWrite(ledR, HIGH);
-	digitalWrite(ledG, HIGH);
-	digitalWrite(ledB, HIGH);
-  }	  else if (mouth==15){
-	digitalWrite(ledR, HIGH);
-	digitalWrite(ledG, HIGH);
-	digitalWrite(ledB, LOW);
-  }	  else if (mouth==16){
-	digitalWrite(ledR, LOW);
-	digitalWrite(ledG, HIGH);
-	digitalWrite(ledB, HIGH);
-  }	  else if (mouth==17){
-	digitalWrite(ledR, HIGH);
-	digitalWrite(ledG, LOW);
-	digitalWrite(ledB, LOW);
-  }	  else if (mouth==18){
-	digitalWrite(ledR, LOW);
-	digitalWrite(ledG, LOW);
-	digitalWrite(ledB, LOW);
-  }	  else if (mouth==19){
-	digitalWrite(ledR, LOW);
-	digitalWrite(ledG, HIGH);
-	digitalWrite(ledB, HIGH);
-  }	  else if (mouth==20){
-	digitalWrite(ledR, LOW);
-	digitalWrite(ledG, LOW);
-	digitalWrite(ledB, LOW);
-  }	  else if (mouth==21){
-	digitalWrite(ledR, LOW);
-	digitalWrite(ledG, LOW);
-	digitalWrite(ledB, HIGH);
-  }	  else if (mouth==22){
-	digitalWrite(ledR, LOW);
-	digitalWrite(ledG, HIGH);
-	digitalWrite(ledB, HIGH);
-  }	  else if (mouth==23){
-	digitalWrite(ledR, LOW);
-	digitalWrite(ledG, LOW);
-	digitalWrite(ledB, HIGH);
-  }	  else if (mouth==24){
-	digitalWrite(ledR, LOW);
-	digitalWrite(ledG, HIGH);
-	digitalWrite(ledB, HIGH);
-  }	  else if (mouth==25){
-	digitalWrite(ledR, LOW);
-	digitalWrite(ledG, HIGH);
-	digitalWrite(ledB, LOW);
-  }	  else if (mouth==26){
-	digitalWrite(ledR, HIGH);
-	digitalWrite(ledG, LOW);
-	digitalWrite(ledB, LOW);
-  }	  else if (mouth==27){
-	digitalWrite(ledR, HIGH);
-	digitalWrite(ledG, HIGH);
-	digitalWrite(ledB, HIGH);
-  }	  else if (mouth==28){
-	digitalWrite(ledR, LOW);
-	digitalWrite(ledG, HIGH);
-	digitalWrite(ledB, HIGH);
-  }	  else if (mouth==29){
-	digitalWrite(ledR, HIGH);
-	digitalWrite(ledG, LOW);
-	digitalWrite(ledB, LOW);
-  }	  else if (mouth==30){
-	digitalWrite(ledR, HIGH);
-	digitalWrite(ledG, LOW);
-	digitalWrite(ledB, LOW);
-  }	 
 }
 
 
 void Otto::clearMouth(){
 
   ledmatrix.clearMatrix();
-  digitalWrite(ledR, LOW);
-  digitalWrite(ledG, LOW);
-  digitalWrite(ledB, LOW);
 }
 
 
@@ -968,126 +888,97 @@ void Otto::playGesture(int gesture){
   int bendPos_4[4]=   {90, 90, 34, 35};
   
   switch(gesture){
-    case OttoHappy: 
 
+    case OttoHappy: 
         _tone(note_E5,50,30);
         putMouth(smile);
-		
         sing(S_happy_short);
         swing(1,800,20); 
         sing(S_happy_short);
 
         home();
-
         putMouth(happyOpen);
     break;
 
 
     case OttoSuperHappy:
-	
         putMouth(happyOpen);
         sing(S_happy);
-		
         putMouth(happyClosed);
         tiptoeSwing(1,500,20);
-	
         putMouth(happyOpen);
         sing(S_superHappy);
-		
         putMouth(happyClosed);
         tiptoeSwing(1,500,20); 
 
         home();  
-
         putMouth(happyOpen);
     break;
 
-    case OttoSad: 	
+
+    case OttoSad: 
         putMouth(sad);
-
-        _moveServos(700, sadPos); 
-
+        _moveServos(700, sadPos);     
         bendTones(880, 830, 1.02, 20, 200);
-	
         putMouth(sadClosed);
         bendTones(830, 790, 1.02, 20, 200);  
-
         putMouth(sadOpen);
         bendTones(790, 740, 1.02, 20, 200);
-
         putMouth(sadClosed);
         bendTones(740, 700, 1.02, 20, 200);
-
         putMouth(sadOpen);
         bendTones(700, 669, 1.02, 20, 200);
-
         putMouth(sad);
         delay(500);
-		home();
 
+        home();
         delay(300);
         putMouth(happyOpen);
     break;
+
 
     case OttoSleeping:
         _moveServos(700, bedPos);     
 
         for(int i=0; i<4;i++){
           putAnimationMouth(dreamMouth,0);
-
           bendTones (100, 200, 1.04, 10, 10);
-		  	digitalWrite(ledR, HIGH);
-			digitalWrite(ledG, HIGH);
-			digitalWrite(ledB, HIGH);
           putAnimationMouth(dreamMouth,1);
-
-          bendTones (200, 300, 1.04, 10, 10); 		  
+          bendTones (200, 300, 1.04, 10, 10);  
           putAnimationMouth(dreamMouth,2);
-
           bendTones (300, 500, 1.04, 10, 10);   
           delay(500);
-
           putAnimationMouth(dreamMouth,1);
-
           bendTones (400, 250, 1.04, 10, 1); 
-			digitalWrite(ledR, LOW);
-			digitalWrite(ledG, LOW);
-			digitalWrite(ledB, LOW);
           putAnimationMouth(dreamMouth,0);
-
           bendTones (250, 100, 1.04, 10, 1); 
           delay(500);
         } 
 
         putMouth(lineMouth);
         sing(S_cuddly);
-        home();  
 
+        home();  
         putMouth(happyOpen);
     break;
 
-    case OttoFart:
 
+    case OttoFart:
         _moveServos(500,fartPos_1);
         delay(300);     
         putMouth(lineMouth);
-
         sing(S_fart1);  
         putMouth(tongueOut);
         delay(250);
         _moveServos(500,fartPos_2);
-
         delay(300);
         putMouth(lineMouth);
-
         sing(S_fart2); 
         putMouth(tongueOut);
         delay(250);
-
         _moveServos(500,fartPos_3);
         delay(300);
         putMouth(lineMouth);
-
         sing(S_fart3);
         putMouth(tongueOut);    
         delay(300);
@@ -1097,8 +988,8 @@ void Otto::playGesture(int gesture){
         putMouth(happyOpen);
     break;
 
-    case OttoConfused:
 
+    case OttoConfused:
         _moveServos(300, confusedPos); 
         putMouth(confused);
         sing(S_confused);
@@ -1107,22 +998,22 @@ void Otto::playGesture(int gesture){
         home();  
         putMouth(happyOpen);
     break;
+
+
     case OttoLove:
         putMouth(heart);
-
         sing(S_cuddly);
         crusaito(2,1500,15,1);
+
         home(); 
         sing(S_happy_short);  
-
         putMouth(happyOpen);
     break;
 
-	
+
     case OttoAngry: 
         _moveServos(300, angryPos); 
         putMouth(angry);
-
 
         _tone(note_A5,100,30);
         bendTones(note_A5, note_D6, 1.02, 7, 4);
@@ -1138,13 +1029,11 @@ void Otto::playGesture(int gesture){
 
         home();  
         putMouth(happyOpen);
-
     break;
 
-    case OttoFretful: 
-	
-        putMouth(angry);
 
+    case OttoFretful: 
+        putMouth(angry);
         bendTones(note_A5, note_D6, 1.02, 20, 4);
         bendTones(note_A5, note_E5, 1.02, 20, 4);
         delay(300);
@@ -1159,11 +1048,10 @@ void Otto::playGesture(int gesture){
         delay(500);
 
         home();  
-
         putMouth(happyOpen);
     break;
 
-	
+
     case OttoMagic:
 
         //Initial note frecuency = 400
@@ -1171,9 +1059,7 @@ void Otto::playGesture(int gesture){
         
         // Reproduce the animation four times
         for(int i = 0; i<4; i++){ 
-		digitalWrite(ledR, LOW);
-		digitalWrite(ledG, LOW);
-		digitalWrite(ledB, HIGH);
+
           int noteM = 400; 
 
             for(int index = 0; index<6; index++){
@@ -1184,9 +1070,7 @@ void Otto::playGesture(int gesture){
 
             clearMouth();
             bendTones(noteM-100, noteM+100, 1.04, 10, 10);  //900 -> 1100
-		digitalWrite(ledR, HIGH);
-		digitalWrite(ledG, LOW);
-		digitalWrite(ledB, LOW);
+
             for(int index = 0; index<6; index++){
               putAnimationMouth(adivinawi,index);
               bendTones(noteM, noteM+100, 1.04, 10, 10);    //1000 -> 400 
@@ -1203,9 +1087,7 @@ void Otto::playGesture(int gesture){
         
         // Reproduce the animation four times
         for(int i = 0; i<2; i++){ 
-		digitalWrite(ledR, LOW);
-		digitalWrite(ledG, HIGH);
-		digitalWrite(ledB, HIGH);
+
             int noteW = 500; 
 
             for(int index = 0; index<10; index++){
@@ -1218,9 +1100,6 @@ void Otto::playGesture(int gesture){
               bendTones(noteW, noteW+100, 1.02, 10, 10); 
               noteW+=101;
             }
-			digitalWrite(ledR, LOW);
-			digitalWrite(ledG, HIGH);
-			digitalWrite(ledB, LOW);
             for(int index = 0; index<10; index++){
               putAnimationMouth(wave,index);
               bendTones(noteW, noteW-100, 1.02, 10, 10); 
@@ -1240,8 +1119,7 @@ void Otto::playGesture(int gesture){
 
     case OttoVictory:
         
-                putMouth(smallSurprise);
-
+        putMouth(smallSurprise);
         //final pos   = {90,90,150,30}
         for (int i = 0; i < 60; ++i){
           int pos[]={90,90,90+i,90-i};  
@@ -1258,7 +1136,6 @@ void Otto::playGesture(int gesture){
         }
 
         putMouth(happyOpen);
-
         //SUPER HAPPY
         //-----
         tiptoeSwing(1,500,20);
@@ -1274,6 +1151,7 @@ void Otto::playGesture(int gesture){
     break;
 
     case OttoFail:
+
         putMouth(sadOpen);
         _moveServos(300,bendPos_1);
         _tone(900,200,1);
@@ -1292,7 +1170,8 @@ void Otto::playGesture(int gesture){
         delay(600);
         clearMouth();
         putMouth(happyOpen);
-		        home();
+        home();
+
     break;
 
   }

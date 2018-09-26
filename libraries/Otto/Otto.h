@@ -27,9 +27,6 @@
 #define PIN_Trigger 8
 #define PIN_Echo    9
 #define PIN_NoiseSensor A6
-#define ledR 14 //A2 Red led
-#define ledG 15 //A0 Green led
-#define ledB 16 //A1 Blue led 
 
 
 class Otto
@@ -78,7 +75,6 @@ class Otto
     float getDistance(); //US sensor
     int getNoise();      //Noise Sensor
 
-	// Removed this because I'm using internal voltage reading
     //-- Battery
     double getBatteryLevel();
     double getBatteryVoltage();
@@ -99,7 +95,7 @@ class Otto
  
   private:
     
-    MaxMatrix ledmatrix=MaxMatrix(10,11,12, 1);
+    MaxMatrix ledmatrix=MaxMatrix(12,10,11, 1);
     BatReader battery;
     Oscillator servo[4];
     US us;

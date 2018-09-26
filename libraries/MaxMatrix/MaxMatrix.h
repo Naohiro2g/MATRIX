@@ -31,7 +31,7 @@ class MaxMatrix
     byte load;
     byte clock;
     byte num;
-    byte buffer[10];
+    byte buffer[80];
     
     void reload();
 	
@@ -43,7 +43,7 @@ class MaxMatrix
     void setCommand(byte command, byte value);
     void setIntensity(byte intensity);
     void setColumn(byte col, byte value);
-	void setColumnAll(byte col, byte value);
+    void setColumnAll(byte col, byte value);
     void setDot(byte col, byte row, byte value);
     //void writeSprite(int x, int y, const byte* sprite);
     

@@ -5,6 +5,7 @@
 */
 
 
+
 #ifndef OttoSerialCommand_h
 #define OttoSerialCommand_h
 
@@ -20,8 +21,8 @@
 #include <string.h>
 
 
-#define SERIALCOMMANDBUFFER 34  //35 originally, lowered to 34 for less memory use, display work ok
-#define MAXSERIALCOMMANDS	13  //14 originally, lowered to 13 for less memory use, all commands work
+#define SERIALCOMMANDBUFFER 35  //16 after changed by me
+#define MAXSERIALCOMMANDS	16
 #define MAXDELIMETER 2
 
 class OttoSerialCommand
