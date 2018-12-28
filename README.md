@@ -15,12 +15,6 @@ Here are libraries and sketches for Otto DIY robot, with all files neccesary for
 v2 sketch is for version with 2 buttons for mode change (first button dance, second button walk+avoid, both together = react to noise)
 v3 sketch has only 1 button or touch sensor and changes modes on touch (dance -> walk -> react to noise -> standby -> dance....)
 Everything else is the same.
-# Otto DIY
-
-This Repository have all open source files for Otto DIY an interactive robot that anyone can make!
-Otto walks, dances, makes sounds and avoids obstacles.Is completely and truly open source, Arduino compatible, programmable, 3D printable.NO SOLDERING REQUIRED! 
-
-This is the beginner version of Otto DIY if you want to try Bluetooth connection, APP control or more sensors please go to [Otto DIY+ (PLUS) repository](https://github.com/OttoDIY/PLUS)
 
 ## 1. Interact with other Otto builders
 Join the [Otto builders group in facebook](https://www.facebook.com/groups/ottodiy/)
